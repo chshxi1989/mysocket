@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <string.h>
+#include <arpa/inet.h>
 
 #define PORT (6666)
 #define MAXLINE (4096)
