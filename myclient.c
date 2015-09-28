@@ -44,7 +44,7 @@ int main(int argc, char** argv)
     //send msg to server
     while(1)
     {
-        fgets(buffer, strlen(buffer), stdin);
+        fgets(buffer, sizeof(buffer), stdin);
         if(strcmp(buffer, "exit") == 0)
         {
             break;
