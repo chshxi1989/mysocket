@@ -9,13 +9,21 @@
 #include <arpa/inet.h>
 
 #define PORT (6666)
-#define MAXLINE (4096)
+#define MAXLINE (128)
 int main(int argc, char** argv)
 {
     int socketfd = 0;
     char buffer[MAXLINE];
     struct sockaddr_in servaddr;
-
+    
+    // check args
+    if(argc != 2)
+    {
+        printf("args error:\n")
+        printf("          myclient ipaddr[x.x.x.x]\n")
+        return -1;
+    }
+    
     // init socket
     socketfd = socket(AF_INET, SOCK_STREAM, 0);
     if( socketfd == -1)
