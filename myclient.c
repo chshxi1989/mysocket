@@ -19,8 +19,8 @@ int main(int argc, char** argv)
     // check args
     if(argc != 2)
     {
-        printf("args error:\n")
-        printf("          myclient ipaddr[x.x.x.x]\n")
+        printf("args error:\n");
+        printf("          myclient ipaddr[x.x.x.x]\n");
         return -1;
     }
     
