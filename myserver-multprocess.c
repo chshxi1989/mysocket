@@ -60,12 +60,16 @@ int main(int argc, char** argv)
             // sub process
             close(listenfd);
             pid = getpid();
-            printf("receive msg by process %d\n", pid);
             while(1)
             {
                 n = recv(connectfd, buffer, MAXLINE, 0);
                 buffer[n] = '\0';
-                printf("receive msg from client: %s\n", buffer);
+                printf("process %d, receive msg from client: %s", pid, buffer);
+                if(strncmp(buffer, "exit\n", strlen("exit\n")) == 0)
+                {
+                    printf("process %d, close with client\n", pid); 
+                    break;
+                }
             }
             close(connectfd);
             exit(0);
