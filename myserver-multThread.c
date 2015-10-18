@@ -7,14 +7,67 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 
-#define MAXLINE (4096)
+#define MAXLINE (128)
 #define PORT (6666)
+
+pthread_mutex_t data_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+struct socket_thread_data
+{
+	int connectfd;
+	struct sockaddr_in clientAddr;
+};
+
+void* socket_handle(void* pSocket_thread_data)
+{
+	// copy data from main function
+	struct socket_thread_data socketThreadData;
+	pthread_mutex_lock(&data_mutex);
+	memcpy(&socketThreadData, (struct socket_thread_data*)pSocket_thread_data, sizeof(struct socket_thread_data));
+	pthread_mutex_unlock(&data_mutex);
+	
+	pthread_t tid = pthread_self();
+	pthread_detach(tid);
+	int connectfd = socketThreadData.connectfd;
+	char ipAddr[16] = "\0";
+	inet_ntop(AF_INET, &(socketThreadData.clientAddr.sin_addr), ipAddr, 16);
+	printf("connectfd : %d\n", connectfd);
+	printf("connectfd : %d\n", connectfd);
+	char buffer[MAXLINE] = "\0";
+	printf("debug\n");
+	printf("debug\n");
+	int n = -1;
+	while(1)
+	{
+		n = recv(connectfd, buffer, MAXLINE, 0);
+		printf("receive return %d\n", n);
+		if(n == 0)
+		{
+			printf("client close link\n");
+			return NULL;
+		}
+		else if(n < 0)
+		{
+			printf("receive client data error: %s(%d)\n", strerror(errno), errno);
+			return NULL;
+		}
+        buffer[n] = '\0';
+        
+        printf("thread %lu, receive msg from client(ip: %s): %s", (unsigned long)tid, ipAddr, buffer);
+        if(strncmp(buffer, "exit\n", strlen("exit\n")) == 0)
+        {
+            printf("thread %lu, close with client\n", (unsigned long)tid); 
+            return NULL;
+        }
+	}
+}
+
 int main(int argc, char** argv)
 {
     int listenfd,connectfd;
     struct sockaddr_in serverAddr;
-    char buffer[MAXLINE];
     int n;
     // create listen socket
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -44,12 +97,10 @@ int main(int argc, char** argv)
     
     // wait for client's request
     printf("======waiting for client's request=======\n");
-    
-    // fork process
-    pid_t pid = -1;
-    struct sockaddr_in clientAddr;
-    socklen_t clientLen;
-    memset(&clientAddr, 0, sizeof(clientAddr));
+	struct socket_thread_data socketThreadData;
+	struct sockaddr_in clientAddr;
+	socklen_t clientLen;
+	memset(&socketThreadData, 0, sizeof(struct socket_thread_data));
     while(1)
     {
         connectfd = accept(listenfd, (struct sockaddr*)&clientAddr, &clientLen);
@@ -58,41 +109,12 @@ int main(int argc, char** argv)
             printf("accept socket error: %s(errno: %d)\n", strerror(errno), errno);
             return -1;
         }
-        pid = fork();
-        if(pid == 0)
-        {
-            // sub process
-            close(listenfd);
-            pid = getpid();
-            char ipAddr[16] = "\0";
-            while(1)
-            {
-                n = recv(connectfd, buffer, MAXLINE, 0);
-				printf("receive return %d\n", n);
-				if(n == 0)
-				{
-					printf("client close link\n");
-					exit(0);
-				}
-				else if(n < 0)
-				{
-					printf("receive client data error: %s(%d)\n", strerror(errno), errno);
-					exit(0);
-				}
-                buffer[n] = '\0';
-                inet_ntop(AF_INET, &clientAddr.sin_addr, ipAddr, 16);
-                printf("process %d, receive msg from client(ip: %s): %s", pid, ipAddr, buffer);
-                if(strncmp(buffer, "exit\n", strlen("exit\n")) == 0)
-                {
-                    printf("process %d, close with client\n", pid); 
-                    break;
-                }
-            }
-            close(connectfd);
-            exit(0);
-        }
-        // father process
-        close(connectfd);
+		socketThreadData.connectfd = connectfd;
+		memcpy(&(socketThreadData.clientAddr), &clientAddr, sizeof(struct sockaddr));
+		
+		//create thread to handle task
+		pthread_create(NULL, NULL, &socket_handle, &socketThreadData);
+	    
     }
     close(listenfd);
     return 0;;
