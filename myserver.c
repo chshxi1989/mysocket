@@ -12,7 +12,7 @@
 int main(int argc, char** argv)
 {
     int listenfd,connectfd;
-    struct sockaddr_in servaddr;
+    struct sockaddr_in serverAddr;
     char buffer[MAXLINE];
     int n;
     // create listen socket
@@ -24,11 +24,11 @@ int main(int argc, char** argv)
     }
     
     // bind socket and port
-    memset(&servaddr, 0 , sizeof(servaddr));
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(PORT);
-    if(bind(listenfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) == -1)
+    memset(&serverAddr, 0 , sizeof(serverAddr));
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serverAddr.sin_port = htons(PORT);
+    if(bind(listenfd, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == -1)
     {
         printf("bind socket error: %s(errno: %d)\n", strerror(errno), errno);
         return -1;
