@@ -14,30 +14,45 @@
 
 pthread_mutex_t data_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-struct socket_thread_data
+typedef struct
 {
 	int connectfd;
 	struct sockaddr_in clientAddr;
-};
+} socket_thread_data;
 
-void* socket_handle(void* pSocket_thread_data)
+socket_thread_data socketThreadData;
+
+void* dump_mem(char* pStart, int length)
 {
+    int i;
+    for(i = 0; i < length; i++)
+    {
+        printf("0x%x ", pStart[i]);
+        if((i+1)%16 == 0)
+        {
+             printf("\n");
+        }
+    }
+    printf("\n");
+}
+
+void* socket_handle(void* cookie)
+{
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
+    #if 1
 	// copy data from main function
-	struct socket_thread_data socketThreadData;
+	socket_thread_data hsocketThreadData;
 	pthread_mutex_lock(&data_mutex);
-	memcpy(&socketThreadData, (struct socket_thread_data*)pSocket_thread_data, sizeof(struct socket_thread_data));
+	memcpy(&hsocketThreadData, &socketThreadData, sizeof(socket_thread_data));
 	pthread_mutex_unlock(&data_mutex);
 	
 	pthread_t tid = pthread_self();
 	pthread_detach(tid);
-	int connectfd = socketThreadData.connectfd;
+	int connectfd = hsocketThreadData.connectfd;
 	char ipAddr[16] = "\0";
-	inet_ntop(AF_INET, &(socketThreadData.clientAddr.sin_addr), ipAddr, 16);
-	printf("connectfd : %d\n", connectfd);
-	printf("connectfd : %d\n", connectfd);
+    printf("connectfd : %d\n", connectfd);
+	inet_ntop(AF_INET, &(hsocketThreadData.clientAddr.sin_addr), ipAddr, 16);
 	char buffer[MAXLINE] = "\0";
-	printf("debug\n");
-	printf("debug\n");
 	int n = -1;
 	while(1)
 	{
@@ -55,13 +70,15 @@ void* socket_handle(void* pSocket_thread_data)
 		}
         buffer[n] = '\0';
         
-        printf("thread %lu, receive msg from client(ip: %s): %s", (unsigned long)tid, ipAddr, buffer);
+        printf("thread 0x%lx, receive msg from client(ip: %s): %s", (unsigned long)tid, ipAddr, buffer);
         if(strncmp(buffer, "exit\n", strlen("exit\n")) == 0)
         {
             printf("thread %lu, close with client\n", (unsigned long)tid); 
             return NULL;
         }
 	}
+    return NULL;
+    #endif
 }
 
 int main(int argc, char** argv)
@@ -69,6 +86,8 @@ int main(int argc, char** argv)
     int listenfd,connectfd;
     struct sockaddr_in serverAddr;
     int n;
+    pthread_t thread;
+    
     // create listen socket
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
     if(listenfd == -1)
@@ -97,10 +116,8 @@ int main(int argc, char** argv)
     
     // wait for client's request
     printf("======waiting for client's request=======\n");
-	struct socket_thread_data socketThreadData;
 	struct sockaddr_in clientAddr;
 	socklen_t clientLen;
-	memset(&socketThreadData, 0, sizeof(struct socket_thread_data));
     while(1)
     {
         connectfd = accept(listenfd, (struct sockaddr*)&clientAddr, &clientLen);
@@ -109,11 +126,16 @@ int main(int argc, char** argv)
             printf("accept socket error: %s(errno: %d)\n", strerror(errno), errno);
             return -1;
         }
+        printf("[%s][%d]connectfd: %d\n", __FUNCTION__, __LINE__, connectfd);
+        dump_mem((char*)&(clientAddr.sin_addr), sizeof(clientAddr.sin_addr));
+        pthread_mutex_lock(&data_mutex);
 		socketThreadData.connectfd = connectfd;
-		memcpy(&(socketThreadData.clientAddr), &clientAddr, sizeof(struct sockaddr));
-		
+		memcpy(&(socketThreadData.clientAddr), &clientAddr, sizeof(clientAddr));
+		pthread_mutex_unlock(&data_mutex);
+        printf("[%s][%d]\n", __FUNCTION__, __LINE__);
+
 		//create thread to handle task
-		pthread_create(NULL, NULL, &socket_handle, &socketThreadData);
+		pthread_create(&thread, NULL, socket_handle, NULL);
 	    
     }
     close(listenfd);
