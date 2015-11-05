@@ -22,7 +22,7 @@ typedef struct
 
 socket_thread_data socketThreadData;
 
-void* dump_mem(char* pStart, int length)
+void dump_mem(char* pStart, int length)
 {
     int i;
     for(i = 0; i < length; i++)

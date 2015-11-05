@@ -9,7 +9,7 @@ All:
 	gcc myserver-multProcess.o -o myserver-multProcess
 	
 	gcc -c myserver-multThread.c -o myserver-multThread.o
-	gcc myserver-multThread.o -o myserver-multThread
+	gcc myserver-multThread.o -lpthread -o myserver-multThread
 clean:
 	rm myserver.o
 	rm myserver
