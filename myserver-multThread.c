@@ -39,7 +39,7 @@ void dump_mem(char* pStart, int length)
 void* socket_handle(void* cookie)
 {
     printf("[%s][%d]\n", __FUNCTION__, __LINE__);
-    #if 1
+
 	// copy data from main function
 	socket_thread_data hsocketThreadData;
 	pthread_mutex_lock(&data_mutex);
@@ -73,19 +73,17 @@ void* socket_handle(void* cookie)
         printf("thread 0x%lx, receive msg from client(ip: %s): %s", (unsigned long)tid, ipAddr, buffer);
         if(strncmp(buffer, "exit\n", strlen("exit\n")) == 0)
         {
-            printf("thread %lu, close with client\n", (unsigned long)tid); 
+            printf("thread 0x%lx, close with client\n", (unsigned long)tid); 
             return NULL;
         }
 	}
     return NULL;
-    #endif
 }
 
 int main(int argc, char** argv)
 {
     int listenfd,connectfd;
     struct sockaddr_in serverAddr;
-    int n;
     pthread_t thread;
     
     // create listen socket
@@ -128,12 +126,12 @@ int main(int argc, char** argv)
         }
         printf("[%s][%d]connectfd: %d\n", __FUNCTION__, __LINE__, connectfd);
         dump_mem((char*)&(clientAddr.sin_addr), sizeof(clientAddr.sin_addr));
+		
         pthread_mutex_lock(&data_mutex);
 		socketThreadData.connectfd = connectfd;
 		memcpy(&(socketThreadData.clientAddr), &clientAddr, sizeof(clientAddr));
 		pthread_mutex_unlock(&data_mutex);
-        printf("[%s][%d]\n", __FUNCTION__, __LINE__);
-
+		
 		//create thread to handle task
 		pthread_create(&thread, NULL, socket_handle, NULL);
 	    

@@ -1,0 +1,12 @@
+1 pthread_create function need set thread_it to store thread identity
+  pthread_create(&thread, NULL, socket_handle, NULL);
+2 lsof
+  use this command to see which process open the resource file
+  
+  selicdeMac-mini:mysocket seliccheng$ lsof | grep 6666
+  SCIM      572 seliccheng  txt      REG                1,4    126666 1399598                /usr/share/mecabra/updates/com.apple.inputmethod.SCIM.bundle/Contents/Resources/asset_zh-Hans_sys.dic
+  myserver- 634 seliccheng    3u    IPv4 0x4ba101f9ab8905f9       0t0     TCP *:6666 (LISTEN)
+  
+  process myserver-multThread is using tcp port 6666
+  
+3 
