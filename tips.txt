@@ -9,4 +9,5 @@
   
   process myserver-multThread is using tcp port 6666
   
-3 
+3 ./myclient 127.0.0.1
+  ./myserver-multThread 

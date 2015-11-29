@@ -62,6 +62,9 @@ int main(int argc, char** argv)
             printf("send msg to server error: %s(errno: %d)", strerror(errno), errno);
             return -1;
         }
+		// receive response from server
+		recv(socketfd, buffer, MAXLINE, 0);
+		printf("receive msg from server: %s\n", buffer);
     }
     close(socketfd);
     return 0;

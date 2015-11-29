@@ -76,6 +76,8 @@ void* socket_handle(void* cookie)
             printf("thread 0x%lx, close with client\n", (unsigned long)tid); 
             return NULL;
         }
+		// send response to client
+		send(connectfd, buffer, strlen(buffer), 0);
 	}
     return NULL;
 }
