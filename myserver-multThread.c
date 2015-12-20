@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+//#include <mysql.h>
 
 #define MAXLINE (128)
 #define PORT (6666)
@@ -35,6 +36,40 @@ void dump_mem(char* pStart, int length)
     }
     printf("\n");
 }
+#if 0
+int getSQLData(char* name, char* info)
+{
+	// connect to mysql server
+	int ret = -1;
+	MYSQL* mysql_main = mysql_init(NULL);
+	if(mysql_main == NULL)
+	{
+		printf("mysql init error\n");
+		return -1;
+	}
+    #define MYSQL_COMMAND ("SELECT childno,fname,age FROM children WHERE age>5")
+	mysql_main = mysql_real_connnect(mysql_main, "loacalhost", "root", "Chshxi611012", "test", 0, NULL, 0);
+	if(mysql_main)
+	{
+		printf("Connect to mysql test database success\n");
+		ret = mysql_query(mysql_main, MYSQL_COMMAND);
+		if(ret)
+		{
+		    printf("mysql command: %s execute fail\n", MYSQL_COMMAND);
+		}
+		else
+		{
+			res_ptr = mysql_use_result(mysql_main);
+			if(res_ptr)
+			{
+				while(sqlrow = mysql_fetch_row(res_ptr))
+			}
+		}
+	}
+	
+	// query info of name
+}
+#endif
 
 void* socket_handle(void* cookie)
 {
